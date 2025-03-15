@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { UserCircle, Sparkles, Mic, Upload, ArrowDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { UserCircle, Sparkles, Mic, Upload, ArrowDown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   Twitter, 
@@ -15,9 +15,14 @@ import {
   Podcast,
   Music,
   Clock,
-  Settings
+  Settings,
+  BookOpen,
+  Layers,
+  Zap,
+  Rss
 } from "lucide-react";
 import { motion } from "framer-motion";
+import React from "react";
 
 const SpotifyIcon = () => (
   <svg 
@@ -40,12 +45,30 @@ const ApplePodcastIcon = () => (
 );
 
 export function HowItWorksSection() {
-  const [selectedCard, setSelectedCard] = useState<number | null>(null);
-
   const scrollToWaitlist = () => {
     const waitlistSection = document.getElementById('waitlist');
     waitlistSection?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  const [inView, setInView] = useState(false);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    
+    const section = document.getElementById('flow-diagram');
+    if (section) observer.observe(section);
+    
+    return () => {
+      if (section) observer.unobserve(section);
+    };
+  }, []);
 
   const cards = [
     {
@@ -122,30 +145,40 @@ export function HowItWorksSection() {
       )
     }
   ];
-
-  const draw = {
-    hidden: { pathLength: 0, opacity: 0 },
-    visible: {
-      pathLength: 1,
-      opacity: 1,
-      transition: {
-        pathLength: { duration: 2, bounce: 0 },
-        opacity: { duration: 0.01 }
-      }
-    }
-  };
-
-  // Replace the flowingDash animation with this
-  const dashOffset = {
-    animate: {
-      strokeDashoffset: [0, -20],
-      transition: {
-        duration: 1,
-        repeat: Infinity,
-        ease: "linear"
-      }
-    }
-  };
+  
+  // Update the technologies array
+  const technologies = [
+    { 
+      name: "Spotify", 
+      icon: "spotify",
+      position: 0, // Right side, top
+      color: "#1DB954" 
+    },
+    { 
+      name: "Apple Music", 
+      icon: "applemusic",
+      position: 1, // Right side, middle
+      color: "#FA243C" 
+    },
+    { 
+      name: "Reddit", 
+      icon: "reddit",
+      position: 4, // Left side, middle
+      color: "#FF4500" 
+    },
+    { 
+      name: "Medium", 
+      icon: "medium",
+      position: 5, // Bottom left - ensure this is a number
+      color: "#000000" 
+    },
+    { 
+      name: "Hacker News", 
+      icon: "hackernews",
+      position: 6, // Left side, top
+      color: "#FF6600" 
+    },
+  ];
 
   return (
     <section id="how-it-works" className="min-h-screen flex flex-col justify-center bg-white dark:bg-gray-900 py-12 md:py-0">
@@ -153,17 +186,14 @@ export function HowItWorksSection() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
           How It Works
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto mb-8 md:mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto mb-12 md:mb-16">
           {cards.map((card, index) => (
             <div
               key={index}
-              className={`
-                bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 md:p-8 
+              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 md:p-8 
                 rounded-xl md:rounded-2xl shadow-lg border border-gray-200/50 
-                dark:border-gray-700/50 cursor-pointer transition-all duration-300
-                ${selectedCard === index ? 'ring-2 ring-purple-600' : 'hover:shadow-xl hover:-translate-y-1'}
-              `}
-              onClick={() => setSelectedCard(selectedCard === index ? null : index)}
+                dark:border-gray-700/50 transition-all duration-300
+                hover:shadow-xl"
             >
               <div className="flex items-center gap-3 mb-3">
                 {card.icon}
@@ -172,403 +202,244 @@ export function HowItWorksSection() {
                 </div>
               </div>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">{card.description}</p>
-              {selectedCard === index && card.details}
+              {card.details}
             </div>
           ))}
         </div>
         
-        <div className="max-w-6xl mx-auto mb-12">
-          <motion.div
-            className="w-full h-[500px] md:h-[200px] relative"
-            initial="hidden"
-            animate="visible"
-            viewport={{ once: true }}
-          >
-            {/* Sources */}
-            <motion.div 
-              className="absolute left-1/2 md:left-12 top-0 md:top-[40%] -translate-x-1/2 md:-translate-y-1/2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="relative w-48 h-48">
-                {/* Twitter - Top */}
-                <motion.div 
-                  className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center z-10"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
-                    <Twitter className="w-8 h-8 text-[#1DA1F2]" />
-                  </div>
-                  <span className="text-xs mt-2">Twitter</span>
-                </motion.div>
-
-                {/* Twitter Topic Nodes */}
-                <div className="absolute hidden md:block">
-                  {/* Topic 1: #tech */}
-                  <motion.div
-                    className="absolute top-[25px] -left-[120px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                  >
-                    <div className="relative">
-                      <svg width="160" height="20" className="absolute top-1/2 right-0 -mr-2 -mt-[1px]">
-                        <line x1="0" y1="10" x2="145" y2="10" stroke="#1DA1F2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800 ml-2">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">#tech</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 2: #AI */}
-                  <motion.div
-                    className="absolute -top-[20px] right-[120px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.75 }}
-                  >
-                    <div className="relative">
-                      <svg width="140" height="60" className="absolute -top-[10px] left-0">
-                        <line x1="0" y1="30" x2="120" y2="30" stroke="#1DA1F2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800 ml-2">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">#AI</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 3: #productivity */}
-                  <motion.div
-                    className="absolute -top-[60px] left-[40px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                  >
-                    <div className="relative">
-                      <svg width="40" height="100" className="absolute bottom-0 left-1/2 -ml-[1px]">
-                        <line x1="20" y1="0" x2="20" y2="80" stroke="#1DA1F2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">#productivity</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* LinkedIn - Bottom Left */}
-                <motion.div 
-                  className="absolute bottom-0 left-0 flex flex-col items-center z-10"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
-                    <Linkedin className="w-8 h-8 text-[#0A66C2]" />
-                  </div>
-                  <span className="text-xs mt-2">LinkedIn</span>
-                </motion.div>
-
-                {/* LinkedIn Topic Nodes */}
-                <div className="absolute hidden md:block">
-                  {/* Topic 1: Satya Nadella */}
-                  <motion.div
-                    className="absolute bottom-[110px] -left-[160px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.85 }}
-                  >
-                    <div className="relative">
-                      <svg width="160" height="100" className="absolute bottom-0 right-0">
-                        <line x1="0" y1="80" x2="140" y2="10" stroke="#0A66C2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">Satya Nadella</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 2: Sam Altman */}
-                  <motion.div
-                    className="absolute bottom-[50px] -left-[140px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.9 }}
-                  >
-                    <div className="relative">
-                      <svg width="140" height="40" className="absolute bottom-0 right-0">
-                        <line x1="0" y1="20" x2="120" y2="20" stroke="#0A66C2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">Sam Altman</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 3: Tech CEOs */}
-                  <motion.div
-                    className="absolute -bottom-[40px] -left-[100px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.95 }}
-                  >
-                    <div className="relative">
-                      <svg width="120" height="80" className="absolute top-0 right-0">
-                        <line x1="10" y1="0" x2="100" y2="60" stroke="#0A66C2" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-md border border-blue-200 dark:border-blue-800">
-                        <span className="text-sm text-blue-600 dark:text-blue-200">Tech CEOs</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-                
-                {/* Reddit - Bottom Right */}
-                <motion.div 
-                  className="absolute bottom-0 right-0 flex flex-col items-center z-10"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
-                    <MessageSquare className="w-8 h-8 text-[#FF4500]" />
-                  </div>
-                  <span className="text-xs mt-2">Reddit</span>
-                </motion.div>
-
-                {/* Reddit Topic Nodes */}
-                <div className="absolute hidden md:block">
-                  {/* Topic 1: r/technology */}
-                  <motion.div
-                    className="absolute bottom-[110px] -right-[160px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                  >
-                    <div className="relative">
-                      <svg width="160" height="100" className="absolute bottom-0 left-0">
-                        <line x1="160" y1="80" x2="20" y2="10" stroke="#FF4500" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-full shadow-md border border-orange-200 dark:border-orange-800">
-                        <span className="text-sm text-orange-600 dark:text-orange-200">r/technology</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 2: r/MachineLearning */}
-                  <motion.div
-                    className="absolute bottom-[50px] -right-[180px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.05 }}
-                  >
-                    <div className="relative">
-                      <svg width="180" height="40" className="absolute bottom-0 left-0">
-                        <line x1="160" y1="20" x2="20" y2="20" stroke="#FF4500" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-full shadow-md border border-orange-200 dark:border-orange-800">
-                        <span className="text-sm text-orange-600 dark:text-orange-200">r/MachineLearning</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Topic 3: r/science */}
-                  <motion.div
-                    className="absolute -bottom-[40px] -right-[100px]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.1 }}
-                  >
-                    <div className="relative">
-                      <svg width="120" height="80" className="absolute top-0 left-0">
-                        <line x1="110" y1="0" x2="20" y2="60" stroke="#FF4500" strokeWidth="2" />
-                      </svg>
-                      <div className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-full shadow-md border border-orange-200 dark:border-orange-800">
-                        <span className="text-sm text-orange-600 dark:text-orange-200">r/science</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* AI Brain - Center it on mobile */}
-            <motion.div
-              className="absolute left-1/2 top-[45%] md:top-[40%] -translate-x-1/2 -translate-y-1/2 z-10"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1 }}
-            >
-              <div className="bg-purple-100/50 dark:bg-purple-900/30 p-6 rounded-full">
-                <Brain className="w-10 h-10 text-purple-600" />
-              </div>
-              <span className="text-sm mt-2 font-medium text-center block">AI Processing</span>
-            </motion.div>
-
-            {/* Output Platforms */}
-            <motion.div 
-              className="absolute left-1/2 md:right-12 md:left-auto bottom-0 md:bottom-auto md:top-[40%] -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.5 }}
-            >
-              <div className="relative w-48 h-48">
-                {/* Spotify - Top */}
-                <motion.div 
-                  className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.6 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg flex items-center justify-center">
-                    <SpotifyIcon />
-                  </div>
-                  <span className="text-xs mt-2">Spotify</span>
-                </motion.div>
-
-                {/* Apple - Bottom Left */}
-                <motion.div 
-                  className="absolute bottom-0 left-0 flex flex-col items-center"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.7 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg flex items-center justify-center">
-                    <ApplePodcastIcon />
-                  </div>
-                  <span className="text-xs mt-2">Apple</span>
-                </motion.div>
-
-                {/* Additional Platform - Bottom Right */}
-                <motion.div 
-                  className="absolute bottom-0 right-0 flex flex-col items-center"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.8 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg flex items-center justify-center">
-                    <Podcast className="w-8 h-8 text-[#8940FA]" />
-                  </div>
-                  <span className="text-xs mt-2">More</span>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* Connecting Lines - Adjust for mobile */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
-              {/* Mobile paths */}
-              <g className="md:hidden">
-                {/* Top to middle path - base */}
-                <motion.path
-                  d="M 400,100 L 400,200"
-                  stroke="url(#gradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  opacity={0.3}
-                />
-                {/* Top to middle path - animated */}
-                <motion.path
-                  d="M 400,100 L 400,200"
-                  stroke="#9333EA"
-                  strokeWidth="2"
-                  strokeDasharray="10 10"
-                  fill="none"
-                  animate="animate"
-                  variants={dashOffset}
-                />
-                {/* Middle to bottom path - base */}
-                <motion.path
-                  d="M 400,250 L 400,350"
-                  stroke="url(#gradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  opacity={0.3}
-                />
-                {/* Middle to bottom path - animated */}
-                <motion.path
-                  d="M 400,250 L 400,350"
-                  stroke="#2563EB"
-                  strokeWidth="2"
-                  strokeDasharray="10 10"
-                  fill="none"
-                  animate="animate"
-                  variants={dashOffset}
-                />
-              </g>
-
-              {/* Desktop paths */}
-              <g className="hidden md:inline">
-                {/* Left curved line - base path */}
-                <motion.path
-                  d="M 150,80 C 250,80 300,100 400,100"
-                  stroke="url(#gradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  opacity={0.3}
-                />
-                {/* Left curved line - animated dashes */}
-                <motion.path
-                  d="M 150,80 C 250,80 300,100 400,100"
-                  stroke="#9333EA"
-                  strokeWidth="2"
-                  strokeDasharray="10 10"
-                  fill="none"
-                  animate="animate"
-                  variants={dashOffset}
-                />
-                {/* Right curved line - base path */}
-                <motion.path
-                  d="M 400,100 C 500,100 550,80 650,80"
-                  stroke="url(#gradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  opacity={0.3}
-                />
-                {/* Right curved line - animated dashes */}
-                <motion.path
-                  d="M 400,100 C 500,100 550,80 650,80"
-                  stroke="#2563EB"
-                  strokeWidth="2"
-                  strokeDasharray="10 10"
-                  fill="none"
-                  animate="animate"
-                  variants={dashOffset}
-                />
-              </g>
-
-              {/* Gradient definition */}
+        {/* Replace the Flow Diagram with Hub-Spoke Diagram */}
+        <div id="flow-diagram" className="max-w-6xl mx-auto mb-16">
+          
+          {/* Hub and Spoke Diagram */}
+          <div className="relative w-full aspect-square max-w-3xl mx-auto">
+            {/* Connecting Lines First (so they appear behind the nodes) */}
+            <svg className="absolute inset-0 w-full h-full z-0">
+              {/* Define animation for the flowing dots */}
               <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#9333EA" />
-                  <stop offset="100%" stopColor="#2563EB" />
+                <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
+                  <circle cx="5" cy="5" r="3" fill="#8940FA" />
+                </marker>
+                
+                {/* Animation definitions */}
+                <linearGradient id="leftFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="rgba(0,0,0,0)">
+                    <animate id="leftFlowAnim1" attributeName="offset" values="0;1" dur="1.2s" begin="0s; rightFlowAnim1.end" repeatCount="1" />
+                  </stop>
+                  <stop offset="5%" stopColor="rgba(137,64,250,0.6)">
+                    <animate id="leftFlowAnim2" attributeName="offset" values="0.05;1.05" dur="1.2s" begin="0s; rightFlowAnim2.end" repeatCount="1" />
+                  </stop>
+                  <stop offset="10%" stopColor="rgba(0,0,0,0)">
+                    <animate id="leftFlowAnim3" attributeName="offset" values="0.1;1.1" dur="1.2s" begin="0s; rightFlowAnim3.end" repeatCount="1" />
+                  </stop>
+                </linearGradient>
+                
+                {/* Right flow gradient - with animation that starts when left flow completes */}
+                <linearGradient id="rightFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="rgba(0,0,0,0)">
+                    <animate id="rightFlowAnim1" attributeName="offset" values="0;1" dur="1.2s" begin="leftFlowAnim1.end" repeatCount="1" />
+                  </stop>
+                  <stop offset="5%" stopColor="rgba(137,64,250,0.6)">
+                    <animate id="rightFlowAnim2" attributeName="offset" values="0.05;1.05" dur="1.2s" begin="leftFlowAnim2.end" repeatCount="1" />
+                  </stop>
+                  <stop offset="10%" stopColor="rgba(0,0,0,0)">
+                    <animate id="rightFlowAnim3" attributeName="offset" values="0.1;1.1" dur="1.2s" begin="leftFlowAnim3.end" repeatCount="1" />
+                  </stop>
                 </linearGradient>
               </defs>
-            </svg>
 
-            {/* Processing Steps */}
+              {technologies.map((tech, index) => {
+                // Group spokes by side (left or right)
+                let angle, yOffset;
+                
+                // Right side spokes (positions 0, 1, 2)
+                if ([0, 1, 2].includes(tech.position)) {
+                  angle = 0; // All right spokes point horizontally right
+                  
+                  // Count how many right spokes we have
+                  const rightSpokes = technologies.filter(t => [0, 1, 2].includes(t.position));
+                  const rightSpokeCount = rightSpokes.length;
+                  
+                  // Calculate vertical position based on index within right spokes
+                  const rightIndex = rightSpokes.indexOf(tech);
+                  
+                  // Distribute evenly from top to bottom
+                  // For 3 items: -30, 0, 30
+                  // For 2 items: -15, 15
+                  // For 1 item: 0
+                  yOffset = rightSpokeCount > 1 
+                    ? -30 + (60 * rightIndex / (rightSpokeCount - 1)) 
+                    : 0;
+                }
+                // Left side spokes (positions 4, 5, 6)
+                else {
+                  angle = Math.PI; // All left spokes point horizontally left
+                  
+                  // Count how many left spokes we have
+                  const leftSpokes = technologies.filter(t => [4, 5, 6].includes(t.position));
+                  const leftSpokeCount = leftSpokes.length;
+                  
+                  // Calculate vertical position based on index within left spokes
+                  const leftIndex = leftSpokes.indexOf(tech);
+                  
+                  // Distribute evenly from top to bottom
+                  // For 3 items: -30, 0, 30
+                  // For 2 items: -15, 15
+                  // For 1 item: 0
+                  yOffset = leftSpokeCount > 1 
+                    ? -30 + (60 * leftIndex / (leftSpokeCount - 1)) 
+                    : 0;
+                }
+                
+                const spokeLengthPercent = 42; // Percentage of radius
+                const x2 = 50 + spokeLengthPercent * Math.cos(angle);
+                const y2 = 50 + yOffset;
+                
+                console.log(`Tech: ${tech.name}, Position: ${tech.position}, Is Left Side: ${[4, 5, 6].includes(tech.position)}`);
+                
+                return (
+                  <React.Fragment key={`line-${index}`}>
+                    {/* Static line */}
+                    <motion.line
+                      initial={{ opacity: 0 }}
+                      animate={inView ? { opacity: 1 } : {}}
+                      transition={{ duration: 0.5, delay: 0.3 + index * 0.05 }}
+                      x1="50%" 
+                      y1="50%" 
+                      x2={`${x2}%`} 
+                      y2={`${y2}%`}
+                      stroke="rgba(0, 0, 0, 0.3)"
+                      strokeWidth="2"
+                    />
+                    
+                    {/* Animated data flow overlay - left to center first */}
+                    {(tech.position === 4 || tech.position === 5 || tech.position === 6) && (
+                      <motion.line
+                        initial={{ opacity: 0 }}
+                        animate={inView ? { opacity: 1 } : {}}
+                        transition={{ duration: 0.5, delay: 0.8 + index * 0.05 }}
+                        x1={`${x2}%`}
+                        y1={`${y2}%`}
+                        x2="50%"
+                        y2="50%"
+                        stroke="url(#leftFlow)"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                      />
+                    )}
+                    
+                    {/* Data flow from center to right nodes - with animation that starts after left flow */}
+                    {[0, 1, 2].includes(tech.position) && (
+                      <motion.line
+                        initial={{ opacity: 0 }}
+                        animate={inView ? { opacity: 1 } : {}}
+                        transition={{ duration: 0.5, delay: 0.8 + index * 0.05 }}
+                        x1="50%"
+                        y1="50%"
+                        x2={`${x2}%`}
+                        y2={`${y2}%`}
+                        stroke="url(#rightFlow)"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </svg>
+            
+            {/* Central Hub */}
             <motion.div 
-              className="hidden md:flex absolute left-1/2 bottom-4 -translate-x-1/2 space-x-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.5 }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10"
             >
-              <div className="flex flex-col items-center">
-                <FileText className="w-6 h-6 text-purple-600" />
-                <span className="text-xs mt-1">Aggregate</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <Sparkles className="w-6 h-6 text-purple-600" />
-                <span className="text-xs mt-1">Generate</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <Mic className="w-6 h-6 text-purple-600" />
-                <span className="text-xs mt-1">Narrate</span>
+              <div className="bg-white dark:bg-gray-800 rounded-full p-5 shadow-lg border-2 border-purple-500">
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" width="80" height="80">
+                    <circle 
+                      cx="12" 
+                      cy="12" 
+                      r="12" 
+                      fill="#8940FA" 
+                    />
+                    <circle 
+                      cx="12" 
+                      cy="12" 
+                      r="8" 
+                      fill="#ffffff" 
+                      fillOpacity="0.2" 
+                    />
+                  </svg>
+                </div>
               </div>
             </motion.div>
-          </motion.div>
+            
+            {/* Technology Nodes */}
+            {technologies.map((tech, index) => {
+              // Group nodes by side (left or right)
+              let angle, yOffset;
+              
+              // Right side nodes (positions 0, 1, 2)
+              if ([0, 1, 2].includes(tech.position)) {
+                angle = 0; // All right nodes point horizontally right
+                
+                // Count how many right nodes we have
+                const rightNodes = technologies.filter(t => [0, 1, 2].includes(t.position));
+                const rightNodeCount = rightNodes.length;
+                
+                // Calculate vertical position based on index within right nodes
+                const rightIndex = rightNodes.indexOf(tech);
+                
+                // Distribute evenly from top to bottom
+                // For 3 items: -30, 0, 30
+                // For 2 items: -15, 15
+                // For 1 item: 0
+                yOffset = rightNodeCount > 1 
+                  ? -30 + (60 * rightIndex / (rightNodeCount - 1)) 
+                  : 0;
+              }
+              // Left side nodes (positions 4, 5, 6)
+              else {
+                angle = Math.PI; // All left nodes point horizontally left
+                
+                // Count how many left nodes we have
+                const leftNodes = technologies.filter(t => [4, 5, 6].includes(t.position));
+                const leftNodeCount = leftNodes.length;
+                
+                // Calculate vertical position based on index within left nodes
+                const leftIndex = leftNodes.indexOf(tech);
+                
+                // Distribute evenly from top to bottom
+                // For 3 items: -30, 0, 30
+                // For 2 items: -15, 15
+                // For 1 item: 0
+                yOffset = leftNodeCount > 1 
+                  ? -30 + (60 * leftIndex / (leftNodeCount - 1)) 
+                  : 0;
+              }
+              
+              const nodeDistancePercent = 42; // Percentage of radius
+              const x = 50 + nodeDistancePercent * Math.cos(angle);
+              const y = 50 + yOffset;
+              
+              return (
+                <motion.div
+                  key={`node-${index}`}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={inView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  className="absolute z-20 bg-white dark:bg-gray-800 rounded-full p-4 shadow-md transform -translate-x-1/2 -translate-y-1/2"
+                  style={{ 
+                    left: `${x}%`, 
+                    top: `${y}%`
+                  }}
+                >
+                  {getTechIcon(tech.icon)}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="text-center">
@@ -584,4 +455,66 @@ export function HowItWorksSection() {
       </div>
     </section>
   );
+}
+
+// Helper function to render technology icons
+function getTechIcon(icon: string) {
+  switch(icon) {
+    case 'spotify':
+      return (
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/spotify_logo.png" 
+            alt="Spotify" 
+            className="w-8 h-8 object-contain"
+          />
+        </div>
+      );
+    case 'applemusic':
+      return (
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/apple_music_logo.png" 
+            alt="Apple Music" 
+            className="w-8 h-8 object-contain"
+          />
+        </div>
+      );
+    case 'hackernews':
+      return (
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/hacker_news_logo.png" 
+            alt="Hacker News" 
+            className="w-8 h-8 object-contain"
+          />
+        </div>
+      );
+    case 'reddit':
+      return (
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/reddit_logo.png" 
+            alt="Reddit" 
+            className="w-8 h-8 object-contain"
+          />
+        </div>
+      );
+    case 'medium':
+      return (
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/medium_logo.png" 
+            alt="Medium" 
+            className="w-8 h-8 object-contain"
+          />
+        </div>
+      );
+    default:
+      return (
+        <div className="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-full">
+          <span className="text-gray-500">?</span>
+        </div>
+      );
+  }
 } 
